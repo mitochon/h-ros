@@ -1,5 +1,3 @@
-main = interact revc
-
 -- | Given a strand takes its reverse complement,
 -- where 'A' <-> 'T', 'C' <-> 'G' are complements
 --
@@ -14,3 +12,5 @@ revc = map compl . reverse
                'C' -> 'G'
                'G' -> 'C'
                _   -> c
+
+main = interact revc

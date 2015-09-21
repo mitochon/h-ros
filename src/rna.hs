@@ -1,5 +1,3 @@
-main = interact toRNA
-
 -- | Replaces all 'T' with 'U'
 --
 -- >>> toRNA "GATGGAACTTGACTACGTAAATT"
@@ -8,3 +6,4 @@ main = interact toRNA
 toRNA :: String -> String --[Char] -> [Char]
 toRNA = map (\x -> if (x == 'T') then 'U' else x)
 
+main = interact toRNA

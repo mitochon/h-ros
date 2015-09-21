@@ -1,12 +1,13 @@
--- | Given positive integers n and k,
--- find the total number of rabbits R
+-- | Given positive integers n and k, find the total number of rabbits R
 -- after n months with multiplication factor k
 --
--- The population begins in the first month with a pair of newborn rabbits.
--- Rabbits reach reproductive age after one month.
--- In any given month, every rabbit of reproductive age mates with another rabbit of reproductive age.
--- Exactly one month after two rabbits mate, they produce k pairs of male and female rabbit.
--- Rabbits never die or stop reproducing.
+-- * The population begins in the first month with a pair of newborn rabbits.
+-- * Rabbits reach reproductive age after one month.
+-- * In any given month, every rabbit of reproductive age mates with another
+--   rabbit of reproductive age.
+-- * Exactly one month after two rabbits mate, they produce k pairs of male
+--   and female rabbit.
+-- * Rabbits never die or stop reproducing.
 --
 -- Reference http://rosalind.info/problems/fib/
 --

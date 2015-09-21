@@ -10,4 +10,4 @@ hamm a b = length . filter(\t -> fst t /= snd t) $ zip a b
 main = do
   a <- getLine
   b <- getLine
-  putStrLn . show $ hamm a b
+  print $ hamm a b
