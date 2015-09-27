@@ -49,7 +49,7 @@ import           Data.List (intercalate, sortBy)
 lexv :: Eq a => [a] -> Int -> [[a]]
 lexv gen n =
   let gen'   = concat $ map (lexf gen) [1..n]
-      lexmap = zip gen [1..]
+      lexmap = zip gen ['a'..]
   in sortBy (lexcomp lexmap) gen'
 
 
