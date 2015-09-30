@@ -64,4 +64,7 @@ runghc gc.hs < b37.fa  688.19s user 7.87s system 99% cpu 11:43.09 total
 "8"
 46.82375529374118
 runghc gcFast.hs < b37.fa  1.43s user 0.12s system 99% cpu 1.566 total
+
+  Update 9/29/15 - after replacing (++) w/ (:)
+  gc.hs performs much faster - both are now at par
 -}

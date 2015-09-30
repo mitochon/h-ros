@@ -2,17 +2,17 @@ import           Control.Monad (liftM2)
 
 -- | Given DNA strings in fasta format, return the ID of the string having
 -- the highest GC content
-parseGC :: [String] -> (String,String) -> (String,Float) -> (String,Float)
+parseGC :: [String] -> (String,[String]) -> (String,Float) -> (String,Float)
 parseGC []     q          p = getMax q p
 parseGC (x:xs) q@(id,seq) p = case x of
-  ('>':nId) -> parseGC xs (nId, "") (getMax q p)
-  nSeq      -> parseGC xs (id, seq ++ nSeq) p
+  ('>':nId) -> parseGC xs (nId, []) (getMax q p)
+  nSeq      -> parseGC xs (id, nSeq:seq) p
 
 
 -- | evaluates the first tuple and compares it against the second tuple
 -- and return the tuple with the maximum associated value
-getMax :: (String,String) -> (String,Float) -> (String,Float)
-getMax (id,seq) p = let p'  = (id, gcContent seq)
+getMax :: (String,[String]) -> (String,Float) -> (String,Float)
+getMax (id,seq) p = let p'  = (id, gcContent (concat seq))
                         max = if (snd p' > snd p) then p' else p
                     in max
 
@@ -28,6 +28,6 @@ gcContent seq   = gcLen / seqLen * 100
 
 main = do
   inp <- getContents
-  let (id, score) = parseGC (lines inp) ("","") ("",0)
+  let (id, score) = parseGC (lines inp) ("",[]) ("",0)
   print id
   print score
