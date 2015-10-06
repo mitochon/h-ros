@@ -4,7 +4,7 @@
 -- >>> ATAT
 -- 2 4 10
 
-subs :: String -> String -> [Bool]
+subs :: Eq a => [a] -> [a] -> [Bool]
 subs [] _ = []
 subs _ [] = []
 subs s t  =
