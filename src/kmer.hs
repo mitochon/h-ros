@@ -68,14 +68,6 @@ foldPair s = addPair $ foldl addLine ([],[],[]) s
                     then ([], nId, addPair (seq,id,acc))
                     else (line : seq, id, acc))
 
-cut :: String -> String -> String
-cut [] _       = []
-cut s []       = s
-cut s@(b:bs) t =
-  let l     = length t
-      (m,n) = splitAt l s
-  in if (m == t) then (cut n t) else b:(cut bs t)
-
 
 -- from lexf.hs
 lexf :: [a] -> Int -> [[a]]
