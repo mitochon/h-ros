@@ -6,9 +6,16 @@ maintainer:          francisco@bina.com
 build-type:          Simple
 cabal-version:       >=1.10
 
+library
+  hs-source-dirs:      src
+  exposed-modules:     Rna, Protein
+  build-depends:       base >= 4.8 && < 4.9
+                     , containers
+  default-language:    Haskell2010
+
 executable rosalind 
   main-is:             problems/rna.hs
-  build-depends:       base >=4.8 && <4.9
-                     , containers
+  build-depends:       base >= 4.8 && < 4.9
+                     , rosalind-h
   hs-source-dirs:      src
   default-language:    Haskell2010
