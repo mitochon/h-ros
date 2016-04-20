@@ -1,8 +1,21 @@
-module Rna ( Base(..), Codon(..), codonMap ) where
+module Rna (
+  Base(..),
+  Codon(..),
+  codonMap,
+  toBases,
+  toAminoAcids,
+  toCodons
+  ) where
 
-import Protein
-import Data.Map as M hiding (filter, map)
-
+import           Data.Foldable ( toList )
+import           Data.Map ( Map )
+import qualified Data.Map as M ( lookup, fromList )
+import           Data.Sequence ( Seq, (|>) )
+import qualified Data.Sequence as S ( empty )
+import           Data.Text.Lazy ( Text )
+import qualified Data.Text.Lazy as L ( foldl )
+import           Protein ( AminoAcid )
+import           Text.Read ( readMaybe )
 
 data Base
   = A | U | C | G
@@ -14,8 +27,26 @@ data Codon
   deriving (Eq, Show, Ord)
 
 
+-- | creates [Base] from Text
+toBases :: Text -> [Base]
+toBases = toList . (L.foldl readAppend S.empty)
+
+
+-- | creates [Codon] from [Base]
+toCodons :: [Base] -> [Codon]
+toCodons (b1:b2:b3:rest) = Triple (b1,b2,b3) : toCodons rest
+toCodons _ = []
+
+
+-- | creates [AminoAcid] from [Codon]
+toAminoAcids :: [Codon] -> [AminoAcid]
+toAminoAcids =
+  let f acids c =  maybe acids (: acids) (M.lookup c codonMap)
+  in reverse . (foldl f [])
+
+
 -- | mapping of Codon -> AminoAcid
-codonMap :: M.Map Codon AminoAcid
+codonMap :: Map Codon AminoAcid
 codonMap =
   let toMap = M.fromList . map toTypedPair. toPair . words
   in toMap codonStr
@@ -35,6 +66,12 @@ toTypedPair (c, p) =
   in (makeCodon (toBases c), read p)
 
 
+-- | appends a typed 'Read' to the end of a sequence
+readAppend :: Read a => Seq a -> Char -> Seq a
+readAppend seq c = maybe seq (seq |>) (readMaybe [c])
+
+
+-- | copied from rosalind.info
 codonStr =
   "  UUU F      CUU L      AUU I      GUU V \
    \ UUC F      CUC L      AUC I      GUC V \
