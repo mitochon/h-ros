@@ -1,21 +1,23 @@
 module Rna (
   Base(..),
   Codon(..),
-  codonMap,
+  fromDna,
   toBases,
   toAminoAcids,
-  toCodons
+  toCodons,
+  codonMap  
   ) where
 
 import           Data.Foldable ( toList )
 import           Data.Map ( Map )
 import qualified Data.Map as M ( lookup, fromList )
-import           Data.Sequence ( Seq, (|>) )
+import           Data.Sequence ( Seq )
 import qualified Data.Sequence as S ( empty )
 import           Data.Text.Lazy ( Text )
 import qualified Data.Text.Lazy as L ( foldl )
+import qualified Dna
+import           Fasta ( readAppend )
 import           Protein ( AminoAcid )
-import           Text.Read ( readMaybe )
 
 data Base
   = A | U | C | G
@@ -25,6 +27,11 @@ data Base
 data Codon
   = Triple (Base, Base, Base)
   deriving (Eq, Show, Ord)
+
+
+-- | transcribes DNA bases to RNA bases
+fromDna :: [Dna.Base] -> [Base]
+fromDna = map (\b -> if (b == Dna.T) then U else (read. show) b)
 
 
 -- | creates [Base] from Text
@@ -64,11 +71,6 @@ toTypedPair (c, p) =
   let toBases   = map (\b -> read [b] :: Base)
       makeCodon = \(w:x:y:z) -> Triple (w,x,y)
   in (makeCodon (toBases c), read p)
-
-
--- | appends a typed 'Read' to the end of a sequence
-readAppend :: Read a => Seq a -> Char -> Seq a
-readAppend seq c = maybe seq (seq |>) (readMaybe [c])
 
 
 -- | copied from rosalind.info

@@ -8,7 +8,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Rna, Protein, Fasta
+  exposed-modules:     Dna, Rna, Protein, Fasta
   build-depends:       base >= 4.8 && < 4.9
                      , containers
                      , text
