@@ -3,21 +3,20 @@ module Rna (
   Codon(..),
   fromDna,
   toBases,
+  toBases',
   toAminoAcids,
+  toAminoAcids',
   toCodons,
-  codonMap  
+  codonMap
   ) where
 
-import           Data.Foldable ( toList )
-import           Data.Map ( Map )
+import Common ( readAppend' )
+import Data.Either ( rights )
+import Data.Foldable ( toList )
+import Data.Map ( Map )
 import qualified Data.Map as M ( lookup, fromList )
-import           Data.Sequence ( Seq )
-import qualified Data.Sequence as S ( empty )
-import           Data.Text.Lazy ( Text )
-import qualified Data.Text.Lazy as L ( foldl )
 import qualified Dna
-import           Fasta ( readAppend )
-import           Protein ( AminoAcid )
+import Protein ( AminoAcid )
 
 data Base
   = A | U | C | G
@@ -34,9 +33,14 @@ fromDna :: [Dna.Base] -> [Base]
 fromDna = map (\b -> if (b == Dna.T) then U else (read. show) b)
 
 
--- | creates [Base] from Text
-toBases :: Text -> [Base]
-toBases = toList . (L.foldl readAppend S.empty)
+-- | creates [Base] from String, ignoring parse failures
+toBases :: String -> [Base]
+toBases = rights . toBases'
+
+
+-- | creates [Base] from String
+toBases' :: String -> [Either Char Base]
+toBases' = toList . (foldl readAppend' mempty)
 
 
 -- | creates [Codon] from [Base]
@@ -45,10 +49,17 @@ toCodons (b1:b2:b3:rest) = Triple (b1,b2,b3) : toCodons rest
 toCodons _ = []
 
 
--- | creates [AminoAcid] from [Codon]
+-- | creates [AminoAcid] from [Codon], ignoring unmappeds
 toAminoAcids :: [Codon] -> [AminoAcid]
-toAminoAcids =
-  let f acids c =  maybe acids (: acids) (M.lookup c codonMap)
+toAminoAcids = rights . toAminoAcids'
+
+
+-- | creates [AminoAcid] from [Codon]
+toAminoAcids' :: [Codon] -> [Either Codon AminoAcid]
+toAminoAcids' =
+  let f acids c = maybe (fl acids c) (fr acids) (M.lookup c codonMap)
+      fl acids  = (: acids) . Left
+      fr acids  = (: acids) . Right
   in reverse . (foldl f [])
 
 

@@ -1,7 +1,4 @@
 import           Data.Foldable ( toList )
-import           Data.Text.Lazy ( Text )
-import qualified Data.Text.Lazy as L
-import qualified Data.Text.Lazy.IO as LI
 import qualified Dna
 import qualified Fasta as F
 import qualified Protein as P
@@ -23,34 +20,23 @@ import qualified Rna
 -- MVYIADKQHVASREAYGHMFKVCA
 
 
-splc :: Text -> Text -> Text
-splc big small
-  | L.null big   = L.empty
-  | L.null small = big
-  | otherwise    =
-    let l = L.length small
-        h = L.head big
-        t = L.tail big
-        (m, n) = L.splitAt l big
-    in if (m == small) then (splc n small)
-       else L.cons h (splc t small)
+splc :: String -> String -> String
+splc []  _          = []
+splc big []         = big
+splc big@(b:bs) sml =
+  let l      = length sml
+      (m, n) = splitAt l big
+  in if (m == sml) then (splc n sml) else b:(splc bs sml)
 
 
 -- | parses text into amino acids
-readExons :: Text -> [P.AminoAcid]
-readExons = (Rna.toAminoAcids . Rna.toCodons .  Rna.fromDna . Dna.toBases)
-
-
--- | extracts sequences (sans id) from a fasta file
-seqList :: Text -> [[Text]]
-seqList = map (toList. snd) . toList . F.fastaLines
+readExons :: String -> [P.AminoAcid]
+readExons = (Rna.toAminoAcids . Rna.toCodons . Rna.fromDna . Dna.toBases)
 
 
 main :: IO ()
 main = do
-  inp <- LI.getContents
-  let (x:xs)  = seqList inp
-      seq     = L.concat x
-      introns = map L.concat xs
-      exons   = foldl splc seq introns
+  inp <- getContents
+  let (seq:introns)  = (map F.sequenceData . F.fastaLines) inp
+      exons          = foldl splc seq introns
   putStrLn $ concat (map show (readExons exons))

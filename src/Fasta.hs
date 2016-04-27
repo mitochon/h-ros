@@ -1,37 +1,34 @@
 module Fasta (
-  LineId,
-  Bases,
-  Line,
-  fastaLines,
-  readAppend
+  Pair(..),
+  fastaLines
   ) where
 
-import qualified Data.Text.Lazy as L ( lines, null, head, tail )
-import           Data.Text.Lazy ( Text )
-import           Data.Sequence ( Seq, empty, viewr, ViewR(..), (|>) )
-import           Text.Read ( readMaybe )
-
-type LineId = Text
-type Bases = Seq Text
-type Line = (LineId, Bases)
+import Data.Foldable ( toList )
+import Data.Sequence ( Seq, empty, viewr, ViewR(..), (|>) )
 
 
--- | folds fasta file format into a Sequence of (id, bases)
-fastaLines :: Text -> Seq Line
-fastaLines = foldLine . L.lines
-  where foldLine :: [Text] -> Seq Line
-        foldLine = foldl mkLine empty
+data Pair =
+  Pair { header :: String
+       , sequenceData :: String }
+  deriving (Eq , Show)
 
 
-mkLine :: Seq Line -> Text -> Seq Line
+-- | folds fasta file format into [Pair]
+fastaLines :: String -> [Pair]
+fastaLines = toPair . toList . foldLine . lines
+  where
+    foldLine :: [String] -> Seq (String, Seq String)
+    foldLine = foldl mkLine empty
+
+    toPair :: [(String, Seq String)] -> [Pair]
+    toPair = map (\(h, s) -> Pair h ((concat . toList) s))
+
+
+-- | folds an individual line
+mkLine :: Seq (String, Seq String) -> String -> Seq (String, Seq String)
 mkLine seq entry =
-  if L.null entry then seq else
-    let (prevs :> curr@(lineId, bases)) = viewr seq
-    in case (L.head entry) of
-      '>' -> seq   |> (L.tail entry, empty)
-      _   -> prevs |> (lineId      , bases |> entry)
-
-
--- | appends a typed 'Read' to the end of a sequence
-readAppend :: Read a => Seq a -> Char -> Seq a
-readAppend seq c = maybe seq (seq |>) (readMaybe [c])
+  let (prevs :> (h, s)) = viewr seq
+  in case (take 1 entry) of
+    []  -> seq
+    ">" -> seq   |> (tail entry, empty) -- new header, empty body
+    _   -> prevs |> (h, s |> entry)     -- keep header, append body

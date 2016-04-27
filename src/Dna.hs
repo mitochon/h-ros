@@ -1,19 +1,24 @@
 module Dna (
   Base(..),
-  toBases
+  toBases,
+  toBases'
   ) where
 
-import           Data.Foldable ( toList )
-import qualified Data.Sequence as S ( empty )
-import           Data.Text.Lazy ( Text )
-import qualified Data.Text.Lazy as L ( foldl )
-import           Fasta ( readAppend )
+import Common ( readAppend' )
+import Data.Either ( rights )
+import Data.Foldable ( toList )
+
 
 data Base
   = A | C | T | G
   deriving (Eq, Show, Read, Ord)
 
 
--- | creates [Base] from Text
-toBases :: Text -> [Base]
-toBases = toList . (L.foldl readAppend S.empty)
+-- | creates [Base] from String, ignoring parse failures
+toBases :: String -> [Base]
+toBases = rights . toBases'
+
+
+-- | creates [Base] from String
+toBases' :: String -> [Either Char Base]
+toBases' = toList . (foldl readAppend' mempty)
