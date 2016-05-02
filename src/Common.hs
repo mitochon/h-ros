@@ -1,9 +1,12 @@
 module Common (
   readAppend,
-  readAppend'
+  readAppend',
+  makeMap,
+  toPair
   ) where
 
 import Data.Sequence ( Seq, (|>) )
+import Data.Map ( Map, fromList )
 import Text.Read ( readMaybe )
 
 
@@ -17,3 +20,16 @@ readAppend' :: Read a => Seq (Either Char a) -> Char -> Seq (Either Char a)
 readAppend' seq c = maybe (fl c) fr (readMaybe [c])
   where fl = (seq |>) . Left
         fr = (seq |>) . Right
+
+
+-- | mapping of a -> b
+makeMap :: Ord a => String -> ((String, String) -> (a, b)) -> Map a b
+makeMap str toTypedPair =
+  let toMap = fromList . map toTypedPair. toPair . words
+  in toMap str
+
+
+-- | create tuples out of elements of a list
+toPair :: [t] -> [(t,t)]
+toPair (x:y:xs) = (x,y) : toPair xs
+toPair  _       = []

@@ -1,3 +1,5 @@
+import Dna ( compl )
+
 -- | Given a strand takes its reverse complement,
 -- where 'A' <-> 'T', 'C' <-> 'G' are complements
 --
@@ -5,12 +7,6 @@
 -- ACCGGGTTTT
 
 revc :: String -> String
-revc = map compl . reverse
-       where compl c = case c of
-               'A' -> 'T'
-               'T' -> 'A'
-               'C' -> 'G'
-               'G' -> 'C'
-               _   -> c
+revc = show . map Dna.compl . read . reverse
 
 main = interact revc

@@ -10,11 +10,11 @@ module Rna (
   codonMap
   ) where
 
-import Common ( readAppend' )
+import Common ( readAppend', makeMap, toPair )
 import Data.Either ( rights )
 import Data.Foldable ( toList )
 import Data.Map ( Map )
-import qualified Data.Map as M ( lookup, fromList )
+import qualified Data.Map as M ( lookup )
 import qualified Dna
 import Protein ( AminoAcid )
 
@@ -65,15 +65,7 @@ toAminoAcids' =
 
 -- | mapping of Codon -> AminoAcid
 codonMap :: Map Codon AminoAcid
-codonMap =
-  let toMap = M.fromList . map toTypedPair. toPair . words
-  in toMap codonStr
-
-
--- | create tuples out of elements of a list
-toPair :: [t] -> [(t,t)]
-toPair (x:y:xs) = (x,y) : toPair xs
-toPair  _       = []
+codonMap = makeMap codonStr toTypedPair
 
 
 -- | convert to typed values

@@ -1,3 +1,5 @@
+import qualified Fasta as F
+
 -- | Given 2 dna strings of equal length, return the transition to
 -- transversion ratio
 --
@@ -30,24 +32,8 @@ toMutation g
 
 main = do
   inp <- getContents
-  let (seq1:seq2:_) = map snd $ foldPair (lines inp)
+  let (seq1:seq2:_) = map (F.sequenceData) $ F.fastaLines inp
       (ti,tv) = tran seq1 seq2
       r = if (tv == 0) then 0 else (ti / tv)
   print r
 
-
--- copied from splc.hs
-
-type Pair = (String,String)
-
--- | folds fasta file format into [(id,sequence)] string pairs
-foldPair :: [String] -> [Pair]
-foldPair s = addPair $ foldl addLine ([],[],[]) s
-  where addPair = (\(seq,id,acc) ->
-                    if (length id > 0)
-                    then acc ++ [(id, (concat . reverse) seq)] -- use '++' ok ?!
-                    else acc)
-        addLine = (\(seq,id,acc) line@(x:nId) ->
-                    if (x == '>')
-                    then ([], nId, addPair (seq,id,acc))
-                    else (line : seq, id, acc))

@@ -1,3 +1,6 @@
+import Dna
+import qualified Fasta as F
+
 -- | Given a DNA string of length at most 1 kbp in FASTA format.
 -- return the position and length of every reverse palindrome in the string
 -- having length between 4 and 12. You may return these pairs in any order.
@@ -31,34 +34,13 @@ isRevC seq n =
   in (length q == n) && (q == revc q)
 
 
+-- copied from revc.hs
+revc :: String -> String
+revc = show . map Dna.compl . read . reverse
+
+
 main = do
   inp <- getContents
-  let (seq:_) = map snd $ foldPair (lines inp)
+  let (seq:_) = map F.sequenceData $ F.fastaLines inp
       printPair = (\(a,b) -> putStr (show a) >> putStr " " >> putStrLn (show b))
   mapM_ printPair (revp seq)
-  
-
--- from revc.hs
-revc :: String -> String
-revc = map compl . reverse
-       where compl c = case c of
-               'A' -> 'T'
-               'T' -> 'A'
-               'C' -> 'G'
-               'G' -> 'C'
-               _   -> c
-
-
--- from splc.hs
-type Pair = (String,String)
-
-foldPair :: [String] -> [Pair]
-foldPair s = addPair $ foldl addLine ([],[],[]) s
-  where addPair = (\(seq,id,acc) ->
-                    if (length id > 0)
-                    then acc ++ [(id, (concat . reverse) seq)] -- use '++' ok ?!
-                    else acc)
-        addLine = (\(seq,id,acc) line@(x:nId) ->
-                    if (x == '>')
-                    then ([], nId, addPair (seq,id,acc))
-                    else (line : seq, id, acc))

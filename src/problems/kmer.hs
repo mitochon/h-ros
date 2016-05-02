@@ -1,4 +1,5 @@
 import           Data.List (intercalate)
+import qualified Fasta as F
 
 -- | For a fixed positive integer k, order all possible k-mers taken
 -- from an underlying alphabet lexicographically.
@@ -34,8 +35,8 @@ kmer seq kmers =
 
 main = do
   inp <- getContents
-  let (seq:_) = foldPair $ words inp
-      indices = kmer (snd seq) (lexf "ACGT" 4) -- assume 'A C G T' lexc
+  let seqData = F.sequenceData $ head $ F.fastaLines inp
+      indices = kmer seqData (lexf "ACGT" 4) -- assume 'A C G T' lexc
   print $ show' indices
 
 
@@ -52,21 +53,6 @@ subs s t  =
   let (m,_) = splitAt (length t) s
       n     = subs (tail s) t
   in if (m == t) then (True:n) else (False:n)
-
-
--- from splc.hs
-type Pair = (String,String)
-
-foldPair :: [String] -> [Pair]
-foldPair s = addPair $ foldl addLine ([],[],[]) s
-  where addPair = (\(seq,id,acc) ->
-                    if (length id > 0)
-                    then acc ++ [(id, (concat . reverse) seq)] -- use '++' ok ?!
-                    else acc)
-        addLine = (\(seq,id,acc) line@(x:nId) ->
-                    if (x == '>')
-                    then ([], nId, addPair (seq,id,acc))
-                    else (line : seq, id, acc))
 
 
 -- from lexf.hs
