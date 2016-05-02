@@ -1,4 +1,5 @@
 import           Data.List (intercalate)
+import qualified Fasta as F
 
 -- | Given two DNA strings s and t (each of length at most 1 kbp) in FASTA
 -- format, return one collection of indices of s in which the symbols
@@ -22,25 +23,9 @@ sseq s@(a:as) t@(b:bs) n
 
 main = do
   inp <- getContents
-  let (s1:s2:_) = map snd $ foldPair (lines inp)
+  let (s1:s2:_) = map F.sequenceData $ F.fastaLines inp
       ix        = sseq s1 s2 1
       noComma   = putStrLn . intercalate " " . map show
   if (length ix) < (length s2)
     then print "none" >> noComma ix
     else noComma ix
-
-
--- copied from splc.hs
-type Pair = (String,String)
-
--- | folds fasta file format into [(id,sequence)] string pairs
-foldPair :: [String] -> [Pair]
-foldPair s = addPair $ foldl addLine ([],[],[]) s
-  where addPair = (\(seq,id,acc) ->
-                    if (length id > 0)
-                    then acc ++ [(id, (concat . reverse) seq)] -- use '++' ok ?!
-                    else acc)
-        addLine = (\(seq,id,acc) line@(x:nId) ->
-                    if (x == '>')
-                    then ([], nId, addPair (seq,id,acc))
-                    else (line : seq, id, acc))

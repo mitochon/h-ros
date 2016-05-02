@@ -2,6 +2,7 @@ import           Data.Foldable       (toList)
 import           Data.List           (intercalate)
 import qualified Data.Sequence       as S
 import qualified Data.Vector.Unboxed as U
+import           Fasta               as F
 
 -- | Given a A DNA string s (of length at most 100 kbp) in FASTA format,
 -- return the failure array of s.
@@ -46,23 +47,7 @@ kmp s = foldl findBorders seed s
 
 main = do
   inp <- getContents
-  let (seq:_) = map snd $ foldPair (lines inp)
+  let (seq:_) = map F.sequenceData $ F.fastaLines inp
       prefix  = S.drop 1 (kmp seq)
       noComma = putStrLn . intercalate " " . map show
   noComma $ toList prefix
-
-
--- from splc.hs
-type Pair = (String,String)
-
--- | folds fasta file format into [(id,sequence)] string pairs
-foldPair :: [String] -> [Pair]
-foldPair s = addPair $ foldl addLine ([],[],[]) s
-  where addPair = (\(seq,id,acc) ->
-                    if (length id > 0)
-                    then acc ++ [(id, (concat . reverse) seq)] -- use '++' ok ?!
-                    else acc)
-        addLine = (\(seq,id,acc) line@(x:nId) ->
-                    if (x == '>')
-                    then ([], nId, addPair (seq,id,acc))
-                    else (line : seq, id, acc))

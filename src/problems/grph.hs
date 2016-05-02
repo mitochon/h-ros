@@ -1,5 +1,6 @@
 import           Control.Monad (forM_)
 import           Data.Array
+import qualified Fasta as F
 
 -- | Given a collection of DNA strings in FASTA format having total length at
 -- most 10 kbp, return the adjacency list corresponding to O3, in any order.
@@ -49,30 +50,14 @@ isMatch (_, _,Suffix s) (_,Prefix p, _) = s == p
 
 
 -- | turns a Pair into Node by taking the first and last n elements
-fromPair :: Int -> Pair -> Node String
-fromPair n (id,seq) = (id, pfx, sfx)
+fromPair :: Int -> F.Pair -> Node String
+fromPair n (F.Pair id seq) = (id, pfx, sfx)
   where pfx = Prefix $ take n seq                        -- first n chars
         sfx = Suffix $ reverse (take n (reverse seq))    -- last n chars
 
 
 main = do
   inp <- getContents
-  let nodes = map (fromPair 3) $ foldPair (lines inp)
+  let nodes = map (fromPair 3) $ F.fastaLines inp
   forM_ (grph nodes) $ \(a,b) ->
     putStr a >> putStr " " >> putStrLn b
-
-
--- copied from splc.hs
-type Pair = (String,String)
-
--- | folds fasta file format into [(id,sequence)] string pairs
-foldPair :: [String] -> [Pair]
-foldPair s = addPair $ foldl addLine ([],[],[]) s
-  where addPair = (\(seq,id,acc) ->
-                    if (length id > 0)
-                    then acc ++ [(id, (concat . reverse) seq)] -- use '++' ok ?!
-                    else acc)
-        addLine = (\(seq,id,acc) line@(x:nId) ->
-                    if (x == '>')
-                    then ([], nId, addPair (seq,id,acc))
-                    else (line : seq, id, acc))
