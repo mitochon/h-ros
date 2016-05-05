@@ -1,3 +1,5 @@
+import Fasta
+
 -- | Given at most 50 DNA strings whose length does not exceed 1 kbp in FASTA
 -- format (which represent reads deriving from the same strand of a single
 -- linear chromosome), return a shortest superstring containing all the
@@ -21,7 +23,7 @@
 -- ATTAGACCTGCCGGAATAC
 --
 -- Breakdown for the above sample:
--- 
+--
 -- ATTAGACCTG           -- 56
 --    AGACCTGCCG        -- 58
 --       CCTGCCGGAA     -- 57
@@ -99,23 +101,7 @@ prefixLen' s1 s2 n max = prefixLen s1 s2 n >>= checkLen
 
 main = do
   inp <- getContents
-  let strands = foldPair (lines inp)
+  let strands = fastaLines inp
       (s,d,u) = long strands [] [] [] 0
   print $ map fst s
   print $ concat (toSuper s d)
-
-
--- copied from splc.hs
-type Pair = (String,String)
-
--- | folds fasta file format into [(id,sequence)] string pairs
-foldPair :: [String] -> [Pair]
-foldPair s = addPair $ foldl addLine ([],[],[]) s
-  where addPair = (\(seq,id,acc) ->
-                    if (length id > 0)
-                    then acc ++ [(id, (concat . reverse) seq)] -- use '++' ok ?!
-                    else acc)
-        addLine = (\(seq,id,acc) line@(x:nId) ->
-                    if (x == '>')
-                    then ([], nId, addPair (seq,id,acc))
-                    else (line : seq, id, acc))
