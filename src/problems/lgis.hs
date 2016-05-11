@@ -21,6 +21,10 @@ import Data.List
 -- >>> 5 1 4 2 3
 -- 1 2 3
 -- 5 4 2
+--
+-- Note: this is a brute force solution that will time out (> 5 min)
+-- when solving a rosalind dataset (array of size ~10k)
+
 
 -- | helper structure to deliniate things that are done vs in progress
 data InProgress a =
