@@ -76,9 +76,14 @@ main = do
 
   putStrLn "trees:"
   mapM_ putStrLn $ map show trees
-  
+
   putStrLn "missing:"
   putStrLn $ show missing
 
   putStrLn "min edges:"
   print minEdges
+
+-- | Follow up note: nice solution from @1HaskellADay
+-- http://lpaste.net/1052721051462533120 where
+--
+-- minEdgesToTreeGraph s = (read.head.lines) s - (length.lines) s
