@@ -7,6 +7,7 @@ module Rna (
   toAminoAcids,
   toAminoAcids',
   toCodons,
+  compl,
   codonMap
   ) where
 
@@ -61,6 +62,15 @@ toAminoAcids' =
       fl acids  = (: acids) . Left
       fr acids  = (: acids) . Right
   in reverse . (foldl f [])
+
+
+-- | complement of an RNA base
+compl :: Base -> Base
+compl b = case b of
+            A -> U
+            U -> A
+            C -> G
+            G -> C
 
 
 -- | mapping of Codon -> AminoAcid
