@@ -1,9 +1,9 @@
-import qualified Rna
-import qualified Fasta as F
-import qualified Data.Map as M
 import           Control.Monad (liftM2)
+import           Control.Monad.Trans.State (State(..), put, get, runState)
 import           Data.List (sortOn)
-
+import qualified Data.Map as M
+import qualified Fasta as F
+import qualified Rna
 
 -- | Given an RNA string s having
 -- 1. the same number of occurrences of 'A' as 'U'
@@ -87,10 +87,9 @@ evalChunk (Chunk l r m) = foldl combine m [l, r]
 
 
 -- | 'evalChunk' with caching
-evalChunk' :: Cache -> Chunk -> (Cache, Int)
-evalChunk' cache (Chunk l r m) =
-  let (cache', m') = evalBases cache l m
-  in if (m' == 0) then (cache', 0) else evalBases cache' r m' -- use State Monad ?
+evalChunk' :: Chunk -> State Cache Int
+evalChunk' (Chunk l r m) = foldl combine (return m) [l, r]
+  where combine s bases = s >>= evalBases bases
 
 
 -- | (+) monoid that recurses on 'evalChunk'
@@ -99,23 +98,26 @@ addChunks = foldl (\total ch -> mod (total + (evalChunk ch)) 1000000) 0
 
 
 -- | 'addChunks' with caching
-addChunks' :: Cache -> [Chunk] -> (Cache, Int)
-addChunks' cache = foldl addUp (cache, 0)
-  where addUp (cache', total) chunk = 
-          let (cache'', sum) = evalChunk' cache' chunk -- use State Monad ?
-          in (cache'', mod (total + sum) 1000000)
+addChunks' :: [Chunk] -> Int -> State Cache Int
+addChunks' []     total = return total
+addChunks' (x:xs) total = do
+  cache <- get
+  let (sum, cache') = runState (evalChunk' x) cache
+      total'        = (mod (total + sum) 1000000)
+  put cache'
+  return total' >>= addChunks' xs
 
 
 -- | Helper for evalChunk'
-evalBases :: Cache -> [Rna.Base] -> Int -> (Cache, Int)
-evalBases cache bases m
- | bases == [] = (cache, m)
- | otherwise   =
-   let bases'        = normalize bases 
-       (cache', sum) = addChunks' cache (bisect bases)
-       cacheMiss     = (M.insert bases' sum cache', m * sum) -- use State Monad ?
-       cacheHit c    = (cache, m * c)
-   in maybe cacheMiss cacheHit (M.lookup bases' cache)
+evalBases :: [Rna.Base] -> Int -> State Cache Int
+evalBases []    total = return total
+evalBases bases total = do
+  cache <- get
+  let bases'        = normalize bases
+      (sum, cache') = runState (addChunks' (bisect bases) 0) cache
+  case M.lookup bases' cache of
+    Just c  -> return (total * c)
+    Nothing -> put (M.insert bases' sum cache') >> return (total * sum)
 
 
 -- | Normalizes `xs` to two sets of complement-pairs (p1, p2) where
@@ -153,5 +155,7 @@ mkOrdered z@(x:xs) ys = case x of
 main :: IO ()
 main = do
   inp <- getContents
-  let s = F.sequenceData $ head $ F.fastaLines inp
-  print $ snd $ addChunks' M.empty (bisect (Rna.toBases s))
+  let baseStr = F.sequenceData $ head $ F.fastaLines inp
+      chunkSt = addChunks' (bisect (Rna.toBases baseStr)) 0
+      (total, cache) = runState chunkSt M.empty
+  print total

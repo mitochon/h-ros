@@ -14,6 +14,7 @@ library
                      , text
                      , vector
                      , array
+                     , transformers
   default-language:    Haskell2010
 
 executable rosalind 
